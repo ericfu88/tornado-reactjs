@@ -19,7 +19,7 @@ var jasminePhantomJs = require('gulp-jasmine2-phantomjs');
 // but include in your application deployment
 var dependencies = [
 	'react',
-  'react-addons'
+  'react/addons'
 ];
 
 var browserifyTask = function (options) {
@@ -98,7 +98,7 @@ var browserifyTask = function (options) {
     // Remove react-addons when deploying, as it is only for
     // testing
     if (!options.development) {
-      dependencies.splice(dependencies.indexOf('react-addons'), 1);
+      dependencies.splice(dependencies.indexOf('react/addons'), 1);
     }
 
     var vendorsBundler = browserify({
@@ -150,13 +150,13 @@ gulp.task('default', function () {
 
   browserifyTask({
     development: true,
-    src: './build/app/app_main.js',
+    src: './src/app/app_main.js',
     dest: './build/static/js'
   });
   
   cssTask({
     development: true,
-    src: './build/static/css/*.css',
+    src: './src/css/*.css',
     dest: './build/static/css'
   });
 
@@ -166,13 +166,13 @@ gulp.task('deploy', function () {
 
   browserifyTask({
     development: false,
-    src: './build/app/app_main.js',
+    src: './src/app/app_main.js',
     dest: './dist/static/js'
   });
   
   cssTask({
     development: false,
-    src: './build/static/css/*.css',
+    src: './src/css/*.css',
     dest: './dist/static/js'
   });
 
