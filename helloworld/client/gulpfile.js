@@ -1,4 +1,5 @@
 var gulp = require('gulp');
+var watch = require('gulp-watch');
 var source = require('vinyl-source-stream'); // Used to stream bundle for further handling
 var browserify = require('browserify');
 var watchify = require('watchify');
@@ -145,6 +146,14 @@ var cssTask = function (options) {
     }
 }
 
+var watchCopyTask = function(options) {
+  watch(options.src, function () {
+        gulp.src(options.src)
+            .pipe(gulp.dest(options.dest));
+    });
+}
+
+
 // Starts our development workflow
 gulp.task('default', function () {
 
@@ -159,6 +168,11 @@ gulp.task('default', function () {
     src: './src/css/*.css',
     dest: './build/static/css'
   });
+
+  watchCopyTask({
+    src: './src/templates/*.html',
+    dest: './build/templates'    
+  })
 
 });
 

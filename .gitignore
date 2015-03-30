@@ -2,7 +2,6 @@
 *.pyc
 node_modules
 
-helloworld/client/build/static/css/main.css
-helloworld/client/build/static/js/main.js
-helloworld/client/build/static/js/specs.js
-helloworld/client/build/static/js/vendors.js
+helloworld/client/build/static/css/*.css
+helloworld/client/build/static/js/*.js
+helloworld/client/build/templates/*.html
