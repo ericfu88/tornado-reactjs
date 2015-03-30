@@ -7,6 +7,7 @@ var reactify = require('reactify');
 var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
+var htmlreplace = require('gulp-html-replace');
 var notify = require('gulp-notify');
 var concat = require('gulp-concat');
 var cssmin = require('gulp-cssmin');
@@ -187,8 +188,13 @@ gulp.task('deploy', function () {
   cssTask({
     development: false,
     src: './src/css/*.css',
-    dest: './dist/static/js'
+    dest: './dist/static/css'
   });
+
+  console.log('Copying template files');
+  gulp.src('src/templates/*.html')
+      .pipe(htmlreplace({debugOnly: ''}))
+      .pipe(gulp.dest('dist/templates'));
 
 });
 

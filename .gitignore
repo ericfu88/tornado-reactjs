@@ -5,3 +5,6 @@ node_modules
 helloworld/client/build/static/css/*.css
 helloworld/client/build/static/js/*.js
 helloworld/client/build/templates/*.html
+helloworld/client/dist/static/css/*.css
+helloworld/client/dist/static/js/*.js
+helloworld/client/dist/templates/*.html
