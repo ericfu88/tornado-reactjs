@@ -21,7 +21,7 @@ var jasminePhantomJs = require('gulp-jasmine2-phantomjs');
 // but include in your application deployment
 var dependencies = [
 	'react',
-  'react/addons'
+  'react-addons'
 ];
 
 var browserifyTask = function (options) {
@@ -86,7 +86,7 @@ var browserifyTask = function (options) {
   		testBundler.bundle()
       .on('error', gutil.log)
 	      .pipe(source('specs.js'))
-	      .pipe(gulp.dest(options.dest))
+	      .pipe(gulp.dest(options.testing_dest))
 	      .pipe(livereload())
 	      .pipe(notify(function () {
 	        console.log('TEST bundle built in ' + (Date.now() - start) + 'ms');
@@ -100,7 +100,7 @@ var browserifyTask = function (options) {
     // Remove react-addons when deploying, as it is only for
     // testing
     if (!options.development) {
-      dependencies.splice(dependencies.indexOf('react/addons'), 1);
+      dependencies.splice(dependencies.indexOf('react-addons'), 1);
     }
 
     var vendorsBundler = browserify({
@@ -161,7 +161,8 @@ gulp.task('default', function () {
   browserifyTask({
     development: true,
     src: './src/app/app_main.js',
-    dest: './build/static/js'
+    dest: './build/static/js',
+    testing_dest: './testing/build'
   });
   
   cssTask({
