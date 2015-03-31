@@ -8,3 +8,5 @@ helloworld/client/build/templates/*.html
 helloworld/client/dist/static/css/*.css
 helloworld/client/dist/static/js/*.js
 helloworld/client/dist/templates/*.html
+helloworld/client/testing/build/specs.js
+helloworld/client/TEST-App.xml
