@@ -5,6 +5,7 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var reactify = require('reactify'); 
 var gulpif = require('gulp-if');
+var sass = require('gulp-sass');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var htmlreplace = require('gulp-html-replace');
@@ -147,6 +148,31 @@ var cssTask = function (options) {
     }
 }
 
+var scssTask = function (options) {
+    if (options.development) {
+      var run = function () {
+        console.log(arguments);
+        var start = new Date();
+        console.log('Building SCSS bundle');
+        gulp.src(options.src)
+          .pipe(sass())
+          .pipe(concat('main.css'))
+          .pipe(gulp.dest(options.dest))
+          .pipe(notify(function () {
+            console.log('CSS bundle built in ' + (Date.now() - start) + 'ms');
+          }));
+      };
+      run();
+      gulp.watch(options.src, run);
+    } else {
+      gulp.src(options.src)
+        .pipe(sass())
+        .pipe(concat('main.css'))
+        .pipe(cssmin())
+        .pipe(gulp.dest(options.dest));   
+    }
+}
+
 var watchCopyTask = function(options) {
   watch(options.src, function () {
         gulp.src(options.src)
@@ -164,12 +190,19 @@ gulp.task('default', function () {
     dest: './build/static/js',
     testing_dest: './testing/build'
   });
-  
+  /*
   cssTask({
     development: true,
     src: './src/css/*.css',
     dest: './build/static/css'
   });
+  */
+
+  scssTask({
+    development: true,
+    src: './src/scss/*.scss',
+    dest: './build/static/css'
+  });  
 
   watchCopyTask({
     src: './src/templates/*.html',
