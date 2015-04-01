@@ -22,7 +22,8 @@ class HelloWorldApplication(tornado.web.Application):
         static_path = os.path.join(app_location, "client", appPath, "static")
         template_path = os.path.join(app_location, "client", appPath, "templates")
 
-        handlers = [
+        handlers = [            
+            (r"/page1", helloworld.handlers.SecondPage),  #  second page
             # =============== Static ===============
             (r"/static/(.*)", tornado.web.StaticFileHandler),
             # =============== Main ===============

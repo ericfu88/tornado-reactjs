@@ -46,7 +46,7 @@ var browserifyTask = function (options) {
     console.log('Building APP bundle');
     appBundler.bundle()
       .on('error', gutil.log)
-      .pipe(source('main.js'))
+      .pipe(source(options.dest_file))
       .pipe(gulpif(!options.development, streamify(uglify())))
       .pipe(gulp.dest(options.dest))
       .pipe(gulpif(options.development, livereload()))
@@ -61,69 +61,67 @@ var browserifyTask = function (options) {
     appBundler.on('update', rebundle);
   }
       
-  rebundle();
+  rebundle();  
+}
 
+var testBundlerTask = function(options) {
   // We create a separate bundle for our dependencies as they
   // should not rebundle on file changes. This only happens when
   // we develop. When deploying the dependencies will be included 
   // in the application bundle
-  if (options.development) {
+  var testFiles = glob.sync(options.test_specs);
+  var testBundler = browserify({
+    entries: testFiles,
+    debug: true, // Gives us sourcemapping
+    transform: [reactify],
+    cache: {}, packageCache: {}, fullPaths: true // Requirement of watchify
+  });
 
-  	var testFiles = glob.sync('./testing/specs/**/*-spec.js');
-		var testBundler = browserify({
-			entries: testFiles,
-			debug: true, // Gives us sourcemapping
-			transform: [reactify],
-			cache: {}, packageCache: {}, fullPaths: true // Requirement of watchify
-		});
+  dependencies.forEach(function (dep) {
+    testBundler.external(dep);
+  });
 
-		dependencies.forEach(function (dep) {
-			testBundler.external(dep);
-		});
-
-  	var rebundleTests = function () {
-  		var start = Date.now();
-  		console.log('Building TEST bundle');
-  		testBundler.bundle()
-      .on('error', gutil.log)
-	      .pipe(source('specs.js'))
-	      .pipe(gulp.dest(options.testing_dest))
-	      .pipe(livereload())
-	      .pipe(notify(function () {
-	        console.log('TEST bundle built in ' + (Date.now() - start) + 'ms');
-	      }));
-  	};
-
-    testBundler = watchify(testBundler);
-    testBundler.on('update', rebundleTests);
-    rebundleTests();
-
-    // Remove react-addons when deploying, as it is only for
-    // testing
-    if (!options.development) {
-      dependencies.splice(dependencies.indexOf('react-addons'), 1);
-    }
-
-    var vendorsBundler = browserify({
-      debug: true,
-      require: dependencies
-    });
-    
-    // Run the vendor bundle
-    var start = new Date();
-    console.log('Building VENDORS bundle');
-    vendorsBundler.bundle()
-      .on('error', gutil.log)
-      .pipe(source('vendors.js'))
-      .pipe(gulpif(!options.development, streamify(uglify())))
-      .pipe(gulp.dest(options.dest))
+  var rebundleTests = function () {
+    var start = Date.now();
+    console.log('Building TEST bundle');
+    testBundler.bundle()
+    .on('error', gutil.log)
+      .pipe(source('specs.js'))
+      .pipe(gulp.dest(options.testing_dest))
+      .pipe(livereload())
       .pipe(notify(function () {
-        console.log('VENDORS bundle built in ' + (Date.now() - start) + 'ms');
+        console.log('TEST bundle built in ' + (Date.now() - start) + 'ms');
       }));
-    
+  };
+
+  testBundler = watchify(testBundler);
+  testBundler.on('update', rebundleTests);
+  rebundleTests();
+
+  // Remove react-addons when deploying, as it is only for
+  // testing
+  if (!options.development) {
+    dependencies.splice(dependencies.indexOf('react-addons'), 1);
   }
+
+  var vendorsBundler = browserify({
+    debug: true,
+    require: dependencies
+  });
   
+  // Run the vendor bundle
+  var start = new Date();
+  console.log('Building VENDORS bundle');
+  vendorsBundler.bundle()
+    .on('error', gutil.log)
+    .pipe(source('vendors.js'))
+    .pipe(gulpif(!options.development, streamify(uglify())))
+    .pipe(gulp.dest(options.vendor_js_dest))
+    .pipe(notify(function () {
+      console.log('VENDORS bundle built in ' + (Date.now() - start) + 'ms');
+    }));
 }
+
 
 var cssTask = function (options) {
     if (options.development) {
@@ -174,23 +172,44 @@ var scssTask = function (options) {
 }
 
 var watchCopyTask = function(options) {
-  watch(options.src, function () {
+  var copyTemplates = function() {
         gulp.src(options.src)
-            .pipe(gulp.dest(options.dest));
+            .pipe(gulp.dest(options.dest));    
+  }
+
+  copyTemplates();
+  watch(options.src, function () {
+        copyTemplates();
     });
 }
 
 
-// Starts our development workflow
-gulp.task('default', function () {
+var getFileNameFromPath = function(filePath) {
+  return filePath.substring(filePath.lastIndexOf('/') + 1)
+}
 
-  browserifyTask({
-    development: true,
-    src: './src/app/app_main.js',
-    dest: './build/static/js',
-    testing_dest: './testing/build'
+/**
+ * Development work flow
+ */
+gulp.task('default', function () {
+  var appRootFiles = glob.sync('./src/app/app_*.js');
+  appRootFiles.forEach(function (appFile) {
+    browserifyTask({
+      development: true,
+      src: appFile,
+      dest: './build/static/js',
+      dest_file: getFileNameFromPath(appFile)
+    });
   });
+
+  testBundlerTask({
+    test_specs: './testing/specs/**/*-spec.js',    
+    testing_dest: './testing/build',   
+    vendor_js_dest: './build/static/js',    
+  })
+
   /*
+   * Enable this when not using scss but pure css only.
   cssTask({
     development: true,
     src: './src/css/*.css',
@@ -211,25 +230,40 @@ gulp.task('default', function () {
 
 });
 
+
+/**
+ * Build for deployment
+ */
 gulp.task('deploy', function () {
 
-  browserifyTask({
-    development: false,
-    src: './src/app/app_main.js',
-    dest: './dist/static/js'
+  var appRootFiles = glob.sync('./src/app/app_*.js');
+  appRootFiles.forEach(function (appFile) {
+    browserifyTask({
+      development: false,
+      src: appFile,
+      dest: './dist/static/js',
+      dest_file: getFileNameFromPath(appFile)
+    });
   });
-  
+
+  /*
+  * Enable this when not using scss but pure css only.
   cssTask({
     development: false,
     src: './src/css/*.css',
     dest: './dist/static/css'
   });
+  */
+  scssTask({
+    development: false,
+    src: './src/scss/*.scss',
+    dest: './dist/static/css'
+  }); 
 
-  console.log('Copying template files');
+  console.log('Copy and transform template files');
   gulp.src('src/templates/*.html')
       .pipe(htmlreplace({debugOnly: ''}))
       .pipe(gulp.dest('dist/templates'));
-
 });
 
 gulp.task('test', function () {

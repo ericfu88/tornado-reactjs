@@ -56,3 +56,7 @@ class MainPage(BaseUIHandler):
         kwargs = dict()
         return self.render2("main.html", **kwargs)
                 
+class SecondPage(BaseUIHandler):
+    def get(self):
+        kwargs = dict()
+        return self.render2("secondpage.html", **kwargs)                
