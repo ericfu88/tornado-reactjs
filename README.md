@@ -11,11 +11,18 @@ React.js is great framework to develope views in a web app. Tornado is a Python 
 
 ### Setup the Frontend
 
-1. Goto the `/helloworld/client/` directory
+1. Go to the `/helloworld/client/` directory
 2. Run `npm install` to install the npm pacakges. 
 3. Run `gulp`. This will watch for file changes automatically rebuild the frontend for development.
 4. To deploy to production, run `gulp deploy`
-5. To run test, run `gulp test`
+
+### Running Tests
+
+1. Go to the `/helloworld/client/` directory 
+2. Run `gulp`
+3. Run `gulp test` in another shell.
+4. Open `helloworld/client/testing/build/testrunner.html` in browser to see the test results.
+
 
 ### Setup the Backend
 
