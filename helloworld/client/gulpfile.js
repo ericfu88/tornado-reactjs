@@ -98,12 +98,6 @@ var testBundlerTask = function(options) {
   testBundler.on('update', rebundleTests);
   rebundleTests();
 
-  // Remove react-addons when deploying, as it is only for
-  // testing
-  if (!options.development) {
-    dependencies.splice(dependencies.indexOf('react-addons'), 1);
-  }
-
   var vendorsBundler = browserify({
     debug: true,
     require: dependencies
