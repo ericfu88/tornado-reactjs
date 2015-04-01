@@ -5,6 +5,7 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var reactify = require('reactify'); 
 var gulpif = require('gulp-if');
+var del = require('del');
 var sass = require('gulp-sass');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
@@ -263,3 +264,13 @@ gulp.task('deploy', function () {
 gulp.task('test', function () {
     return gulp.src('./testing/build/testrunner-phantomjs.html').pipe(jasminePhantomJs());
 });
+
+gulp.task('clean', function () {
+  del([
+      './build/**',
+      './dist/**',
+      'testing/build/specs.js*',
+      './TEST-App.xml'
+    ]);                 
+});
+
